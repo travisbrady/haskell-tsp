@@ -8,15 +8,17 @@ import System.Random (randomRIO, randomR, mkStdGen)
 import Data.Maybe (catMaybes, fromJust)
 import Data.List ((!!), minimum, maximum, elemIndex, elem, (\\), nub, delete, sort, minimumBy, sortBy)
 import Shuffle
-import Util (getData, getOptTour)
+import Util (getData, getOptTour, dumpTour)
 
-generations = 20
-npergen = 8000
+generations = 3000
+npergen = 5000
+
 mutProb :: Float
-mutProb = (0.16)
+mutProb = 0.10
+crossProb :: Float
+crossProb = 0.75
 
-computeDistanceMap :: (RealFrac t1, Integral b, Floating t1, Ord t) =>
-                      [(t, t1, t1)] -> M.Map (t, t) b
+computeDistanceMap :: [(Int, Float, Float)] -> M.Map (Int, Int) Int
 computeDistanceMap cities = M.fromList [((fst3 x, fst3 y), x `dist` y) | x <- cities, y <- cities]
     where dist (c1, x1, y1) (c2, x2, y2) = round $ sqrt ((x1-x2)^2 + (y1-y2)^2) 
           fst3 (x,y,z) =  x
@@ -34,6 +36,8 @@ tdo distMap tour = td tour 0
 randomOf :: [a] -> IO a
 randomOf xs = (xs!!) `liftM` randomRIO (0, length xs-1)
 
+tournament :: (Ord a1, Ord t, Num a1, Num a, Enum a) =>
+              M.Map (t, t) a1 -> a -> [[t]] -> IO [t]
 tournament distMap n tours = do
     players <- mapM (\x -> randomOf tours) [1..n]
     let dists = map (tdo distMap) players
@@ -51,6 +55,8 @@ getNextCity tour city = tour!!((fromJust $ elemIndex city tour)+1)
 
 getDM = computeDistanceMap `liftM` getData
 
+greedyCross :: (Num a) =>
+               (a -> t -> t1 -> [a] -> a) -> t -> t1 -> [a] -> [a] -> [a]
 greedyCross chooser mom dad notPicked [] = greedyCross chooser mom dad notPicked [1] 
 greedyCross chooser mom dad [last] !acc = (1:last:acc)
 greedyCross chooser mom dad notPicked !acc = (greedyCross chooser mom dad (delete theChosen notPicked) newAcc)
@@ -76,7 +82,7 @@ noOnes lst = (nub lst)\\oneOne
 
 maybeCross chooser mtx tour dm pop = do
     crossRoll <- randomRIO (0.0, 1.0) :: IO Float
-    case crossRoll < 0.08 of 
+    case crossRoll < crossProb of 
         True -> do
             dad <- mtx pop
             let kid = greedyCross chooser tour dad (noOnes tour) []
@@ -97,6 +103,7 @@ genGen chooser mtx pop dm i end acc = do
         True -> return acc
         False -> genGen chooser mtx pop dm (i+1) end (thisTour:acc)
 
+twoOpt :: (Ord a, Num a1, Ord a1) => M.Map (a, a) a1 -> [a] -> IO [a]
 twoOpt dm tour = do
     ai <- randomRIO (1, length tour - 2)
     bi <- randomRIO (1, length tour - 2)
@@ -120,14 +127,15 @@ keepOn chooser mtx pop dm i end = do
     let dists = map (tdo dm) ng
     echo dists i
     case i == end of
-        True -> return dists
+        True -> return (head best)
         False -> keepOn chooser mtx ng dm (i+1) end
 
 main = do
     dm <- getDM
-    pop <- makeTours 51 25000
+    pop <- makeTours 51 15000
     let chooser = chooseOne dm
     let mtx = tournament dm 2
-    lastGen <- keepOn chooser mtx pop dm 0 generations
-    print (minimum lastGen)
-    print "bye"
+    best <- keepOn chooser mtx pop dm 0 generations
+    let bestDist = tourDistance dm best
+    dumpTour best ("best_" ++ (show bestDist) ++ ".tour")
+    return ()
