@@ -3,3 +3,5 @@ tmp/cache
 tmp/compiled
 *.hi
 *.o
+.DS_Store
+*.swp

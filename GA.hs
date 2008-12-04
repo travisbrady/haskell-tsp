@@ -10,8 +10,8 @@ import Data.List ((!!), minimum, maximum, elemIndex, elem, (\\), nub, delete, so
 import Shuffle
 import Util (getData, getOptTour, dumpTour)
 
-generations = 3000
-npergen = 5000
+generations = 50
+npergen = 1000
 
 mutProb :: Float
 mutProb = 0.10
