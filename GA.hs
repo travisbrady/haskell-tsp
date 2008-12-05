@@ -121,21 +121,21 @@ echo dists i = do
         then print (minimum dists)
         else putStr "."
 
-keepOn chooser mtx pop dm i end = do
+keepOn chooser mtx pop dm generations = do
     let best = take 5 $ sortBy (\x y -> compare (tdo dm x) (tdo dm y)) pop
     ng <- genGen chooser mtx pop dm 0 npergen best
     let dists = map (tdo dm) ng
     echo dists i
     case i == end of
         True -> return (head best)
-        False -> keepOn chooser mtx ng dm (i+1) end
+        False -> keepOn chooser mtx ng dm (generations-1)
 
 main = do
     dm <- getDM
     pop <- makeTours 51 15000
     let chooser = chooseOne dm
     let mtx = tournament dm 2
-    best <- keepOn chooser mtx pop dm 0 generations
+    best <- keepOn chooser mtx pop dm generations
     let bestDist = tourDistance dm best
     dumpTour best ("best_" ++ (show bestDist) ++ ".tour")
     return ()
