@@ -125,8 +125,8 @@ keepOn chooser mtx pop dm generations = do
     let best = take 5 $ sortBy (\x y -> compare (tdo dm x) (tdo dm y)) pop
     ng <- genGen chooser mtx pop dm 0 npergen best
     let dists = map (tdo dm) ng
-    echo dists i
-    case i == end of
+    echo dists generations
+    case generations == 0 of
         True -> return (head best)
         False -> keepOn chooser mtx ng dm (generations-1)
 
