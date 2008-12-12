@@ -14,9 +14,9 @@ generations = 50
 npergen = 1000
 
 mutProb :: Float
-mutProb = 0.10
+mutProb = 0.8
 crossProb :: Float
-crossProb = 0.75
+crossProb = 0.05
 
 computeDistanceMap :: [(Int, Float, Float)] -> M.Map (Int, Int) Int
 computeDistanceMap cities = M.fromList [((fst3 x, fst3 y), x `dist` y) | x <- cities, y <- cities]
