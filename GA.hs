@@ -1,5 +1,6 @@
 {-# LANGUAGE BangPatterns #-}
 module Main where
+--This code is worth big money
 
 import qualified Data.Map as M
 import Data.Map ((!))
