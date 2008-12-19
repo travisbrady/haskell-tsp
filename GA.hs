@@ -15,9 +15,9 @@ generations = 50
 npergen = 1000
 
 mutProb :: Float
-mutProb = 0.10
+mutProb = 0.8
 crossProb :: Float
-crossProb = 0.75
+crossProb = 0.05
 
 computeDistanceMap :: [(Int, Float, Float)] -> M.Map (Int, Int) Int
 computeDistanceMap cities = M.fromList [((fst3 x, fst3 y), x `dist` y) | x <- cities, y <- cities]
@@ -122,21 +122,21 @@ echo dists i = do
         then print (minimum dists)
         else putStr "."
 
-keepOn chooser mtx pop dm i end = do
+keepOn chooser mtx pop dm generations = do
     let best = take 5 $ sortBy (\x y -> compare (tdo dm x) (tdo dm y)) pop
     ng <- genGen chooser mtx pop dm 0 npergen best
     let dists = map (tdo dm) ng
-    echo dists i
-    case i == end of
+    echo dists generations
+    case generations == 0 of
         True -> return (head best)
-        False -> keepOn chooser mtx ng dm (i+1) end
+        False -> keepOn chooser mtx ng dm (generations-1)
 
 main = do
     dm <- getDM
     pop <- makeTours 51 15000
     let chooser = chooseOne dm
     let mtx = tournament dm 2
-    best <- keepOn chooser mtx pop dm 0 generations
+    best <- keepOn chooser mtx pop dm generations
     let bestDist = tourDistance dm best
     dumpTour best ("best_" ++ (show bestDist) ++ ".tour")
     return ()

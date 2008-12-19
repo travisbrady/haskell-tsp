@@ -30,7 +30,6 @@ dumpTour tour fn = do
     let tt = map tobs tour
     let cmap = M.fromList $ map yex cities
     let outlist = [x:(cmap!x) | x <- tt]
-    --let rows = map S.unwords outlist
     let outStr = S.unlines $ map S.unwords outlist
     S.writeFile fn outStr
     return ()
